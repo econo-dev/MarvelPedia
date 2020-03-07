@@ -1,6 +1,5 @@
-package com.gal.marvelpedia
+package com.gal.marvelpedia.adapters
 
-import android.content.Context
 import android.content.Intent
 import android.support.design.widget.Snackbar
 import android.support.v7.widget.RecyclerView
@@ -10,23 +9,28 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import com.gal.marvelpedia.*
+import com.gal.marvelpedia.LoginActivity.Companion.userId
 import com.squareup.picasso.Picasso
-// this inside RecyclerAdapter(...) -> title: ArrayList<String>, detail: ArrayList<String>, summary: ArrayList<String>, images: ArrayList<String>
-class RecyclerAdapter(characters: ArrayList<Character>) : RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
+
+class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
+    RecyclerView.Adapter<FavouritesRecyclerAdapter.ViewHolder>() {
 
     private val images = intArrayOf(R.drawable.example)
-//    var titles: ArrayList<String> = title
+    //    var titles: ArrayList<String> = title
 //    var details: ArrayList<String> = detail
 //    var summaries: ArrayList<String> = summary
 //    var thumbnails: ArrayList<String> = images
+    val databaseHelper: DatabaseHelper? = null
     var charactersList: ArrayList<Character> = characters
     val THUMBNAIL_SIZE = "/landscape_medium.jpg"
 
-    inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val context = itemView.context
-        var itemImage:ImageView
-        var itemTitle:TextView
-        var itemDetail:TextView
+        var itemImage: ImageView
+        var itemTitle: TextView
+        var itemDetail: TextView
 //        var detailedImage :ImageView
 //        lateinit var searchBar:SearchView
 
@@ -38,22 +42,43 @@ class RecyclerAdapter(characters: ArrayList<Character>) : RecyclerView.Adapter<R
 //            detailedImage = itemView.findViewById(R.id.imgPreview)
 //            searchBar = itemView.findViewById(R.id.searchBar)
 
-            itemView.setOnClickListener{
-                    view:View ->
-                var position:Int = adapterPosition
+
+            itemView.setOnClickListener { view: View ->
+                val position: Int = adapterPosition
                 /* this snackbar is for categories arrayList approach
                 Snackbar.make(view, summaries[position],
                     Snackbar.LENGTH_LONG).setAction("Action $position",null).show() */
                 // object-based snackbar
-                Snackbar.make(view, charactersList[position].getDateModified(), Snackbar.LENGTH_SHORT).setAction("Action $position", null).show()
+                Snackbar.make(
+                    view,
+                    charactersList[position].getDateModified(),
+                    Snackbar.LENGTH_SHORT
+                ).setAction("Action $position", null).show()
 //                Picasso.get().load(thumbnails[position]+".jpg").into(detailedImage)
-                val intent = Intent(context, CharacterDetailWebView::class.java) //.apply{putExtra("key","value")}
+                val intent = Intent(
+                    context,
+                    CharacterDetailWebView::class.java
+                ) //.apply{putExtra("key","value")}
                     .apply {
-                        putExtra("url", charactersList[position].getWikiURL() )
-                    putExtra("titleName", charactersList[position].getName())
+                        putExtra("url", charactersList[position].getWikiURL())
+                        putExtra("titleName", charactersList[position].getName())
                         Log.e("itemView_onClick", charactersList[position].getWikiURL())
                     }
                 context.startActivity(intent)
+            }
+
+            itemView.setOnLongClickListener { view: View ->
+                val position: Int = adapterPosition
+                Log.e("FAV ", "$userId ${charactersList[position].getName()}")
+                databaseHelper?.removeUserCharacter(userId!!, charactersList[position])
+                FavouritesActivity.favouriteCharactersList.remove(charactersList[position])
+                Toast.makeText(
+                    context,
+                    "${itemTitle.text} was removed from favourites!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                notifyDataSetChanged()
+                true
             }
         }
     }
@@ -66,24 +91,26 @@ class RecyclerAdapter(characters: ArrayList<Character>) : RecyclerView.Adapter<R
 
     //create only the template for the view holder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_layout, parent,false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_layout, parent, false)
         return ViewHolder(view)
     }
 
     //change the data of our view holder
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.itemTitle.text = charactersList[position].getName() /*titles[position] */ // + mock -> mymock for testing
+        holder.itemTitle.text =
+            charactersList[position].getName() /*titles[position] */ // + mock -> mymock for testing
         holder.itemDetail.text = charactersList[position].getDescription() /* details[position] */
 //        holder.itemImage.setImageResource(R.drawable.example)
 //        holder.itemImage
 //        Picasso.get().load(thumbnails[position]+"/landscape_medium.jpg").into(holder.itemImage)
-        Picasso.get().load(charactersList[position].getThumbnail()+THUMBNAIL_SIZE).into(holder.itemImage)
+
+        Picasso.get().load(charactersList[position].getThumbnail() + THUMBNAIL_SIZE)
+            .into(holder.itemImage)
     }
 
-    fun getImagesFromURL(url: String, index: Int){
-//        Picasso.get().load(thumbnails[index])
-        Picasso.get().load(charactersList[index].getThumbnail())
-    }
+//    fun getImagesFromURL(url: String, index: Int){
+////        Picasso.get().load(thumbnails[index])
+//        Picasso.get().load(charactersList[index].getThumbnail())
+//    }
 
 }
-

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class SQLiteDatabaseHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -29,7 +29,7 @@ class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         //create a new map of values, the column names are the keys
         val values = ContentValues()
-        values.put(DBContract.UserEntry.COLUMN_USER_ID, user.userId)
+//        values.put(DBContract.UserEntry.COLUMN_USER_ID, user.id)
         values.put(DBContract.UserEntry.COLUMN_NAME, user.name)
         values.put(DBContract.UserEntry.COLUMN_PASSWORD, user.password)
 
@@ -59,7 +59,7 @@ class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         var cursor: Cursor? = null
 
         try {
-            cursor = db.rawQuery("select * from " + DBContract.UserEntry.TABLE_NAME + " WHERE " + DBContract.UserEntry.COLUMN_NAME + "='" + userName +"'", null)
+            cursor = db.rawQuery("SELECT * FROM " + DBContract.UserEntry.TABLE_NAME + " WHERE " + DBContract.UserEntry.COLUMN_NAME + "='" + userName +"'", null)
         } catch (e: SQLException){
             Log.e("SQL_readUser ", e.message)
             //if table not created, create it
@@ -67,14 +67,16 @@ class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             return ArrayList()
         }
 
+        var id: Int
         var name: String
         var password: String
         if (cursor!!.moveToFirst()) {
             while (!cursor.isAfterLast) {
+                id = cursor.getInt(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_USER_ID))
                 name = cursor.getString(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_NAME))
                 password = cursor.getString(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_PASSWORD))
 
-                users.add(UserModel(userName, name, password))
+//                users.add(UserModel(id , name, password))
                 cursor.moveToNext()
             }
         }
@@ -93,16 +95,16 @@ class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             return ArrayList()
         }
 
-        var userid: String
+        var userid: Int
         var name: String
         var password: String
         if (cursor!!.moveToFirst()) {
             while (!cursor.isAfterLast) {
-                userid = cursor.getString(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_USER_ID))
+                userid = cursor.getInt(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_USER_ID))
                 name = cursor.getString(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_NAME))
                 password = cursor.getString(cursor.getColumnIndex(DBContract.UserEntry.COLUMN_PASSWORD))
 
-                users.add(UserModel(userid, name, password))
+//                users.add(UserModel(userid, name, password))
                 cursor.moveToNext()
             }
         }
@@ -111,10 +113,10 @@ class UsersDBHelper (context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         //changing db schema requires incremting the database version
-        val DATABASE_VERSION = 1
+        val DATABASE_VERSION = 2
         val DATABASE_NAME = "MarvelUsers.db"
 
-        private val SQL_CREATE_ENTRIES = "CREATE TABLE " + DBContract.UserEntry.TABLE_NAME + " (" + DBContract.UserEntry.COLUMN_USER_ID + " TEXT," + DBContract.UserEntry.COLUMN_NAME + " TEXT PRIMARY KEY," + DBContract.UserEntry.COLUMN_PASSWORD + " TEXT)"
+        private val SQL_CREATE_ENTRIES = "CREATE TABLE " + DBContract.UserEntry.TABLE_NAME + " (" + DBContract.UserEntry.COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + DBContract.UserEntry.COLUMN_NAME + " TEXT," + DBContract.UserEntry.COLUMN_PASSWORD + " TEXT)"
 
         private val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + DBContract.UserEntry.TABLE_NAME
     }

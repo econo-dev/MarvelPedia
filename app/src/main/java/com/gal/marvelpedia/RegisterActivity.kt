@@ -1,22 +1,22 @@
 package com.gal.marvelpedia
 
-import android.content.Context
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_register.*
-import java.util.*
 
 class RegisterActivity : AppCompatActivity(), UserAble {
 
-    lateinit var usersDBHelper: UsersDBHelper
+    private var databaseHelper: DatabaseHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
-        usersDBHelper = UsersDBHelper(this)
+        databaseHelper = DatabaseHelper(this)
         setPointer()
     }
 
@@ -37,9 +37,13 @@ class RegisterActivity : AppCompatActivity(), UserAble {
             return
         }
 
-        var userId = UUID.randomUUID().toString()
-        Log.e("user_UUID ", userId)
-        var result = usersDBHelper.insertUser(UserModel(userId, userName, password1))
+//        val values = ContentValues()
+//        values.put(DBContract.UserEntry.COLUMN_NAME, userName)
+//        values.put(DBContract.UserEntry.COLUMN_PASSWORD, password1)
+//        val userId = SQLiteDatabaseHelper.writableDatabase.insertWithOnConflict(DBContract.UserEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+//        Log.e("user_UUID ", userId.toString())
+//        var result = SQLiteDatabaseHelper. .insertUser(UserModel(userId.toInt(), userName, password1))
+        databaseHelper!!.addUser(userName, password1)
         Toast.makeText(this, "User Registered Successfully", Toast.LENGTH_SHORT).show()
 
         //clear the EditText

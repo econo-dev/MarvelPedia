@@ -5,21 +5,20 @@ package com.gal.marvelpedia
 class Character {
 
     //properties
-    private var name: String
-    private var description: String
-    private var thumbnail: String
-    private var dateModified: String
-    private var detailsURL: String = ""
-    private var wikiURL: String = ""
+    private var name: String? = null
+    private var description: String? = null
+    private var thumbnail: String? = null
+    private var dateModified: String? = null
+    private var detailsURL: String? = null
+    private var wikiURL: String? = null
 
-    constructor(charName: String, charDescription: String, charThumbnail: String, charDateModified: String) {
-        name = charName
-        description = charDescription
-        thumbnail = charThumbnail
-        dateModified = charDateModified
-    }
-
-
+//    constructor(charName: String, charDescription: String, charThumbnail: String, charDateModified: String) {
+//        name = charName
+//        description = charDescription
+//        thumbnail = charThumbnail
+//        dateModified = charDateModified
+//    }
+//
     constructor(
         name: String,
         description: String,
@@ -46,28 +45,29 @@ class Character {
      */
     //member func
     fun getName(): String{
-        return name
+        return name.toString()
     }
 
     fun getDescription(): String{
-        return description
+        return description.toString()
     }
 
     fun getThumbnail(): String{
-        return thumbnail
+        return thumbnail.toString()
     }
 
     fun getDateModified(): String{
-        return dateModified
+        return dateModified.toString()
     }
 
     fun getDetailsURL(): String{
-        return detailsURL
+        return detailsURL.toString()
     }
 
     fun getWikiURL(): String{
-        return wikiURL
+        return wikiURL.toString()
     }
+
 
     fun setName(name: String){
         this.name = name
@@ -92,4 +92,5 @@ class Character {
     fun setWikiURL(wikiURL: String){
         this.wikiURL = wikiURL
     }
+
 }

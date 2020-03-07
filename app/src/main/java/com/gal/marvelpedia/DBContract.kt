@@ -10,6 +10,9 @@ object DBContract {
             val COLUMN_USER_ID = "userid"
             val COLUMN_NAME = "name"
             val COLUMN_PASSWORD = "password"
+
+            val TABLE_FVOURITES = "user_favourites"
+            val COLUMN_FAVOURITES = "favourites"
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.gal.marvelpedia
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.AsyncTask
@@ -17,14 +16,12 @@ import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
+import com.gal.marvelpedia.LoginActivity.Companion.userName
+import com.gal.marvelpedia.adapters.NavRecyclerAdapter
+import com.gal.marvelpedia.adapters.RecyclerAdapter
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.card_layout.view.*
-import kotlinx.android.synthetic.main.list_fab_main.*
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStream
@@ -32,20 +29,26 @@ import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
-    private var layoutManger: RecyclerView.LayoutManager? = null
-    private var adapter:RecyclerView.Adapter<RecyclerAdapter.ViewHolder>? = null
-    lateinit var mock:String
+class MainActivity : AppCompatActivity(), View.OnClickListener,
+    NavigationView.OnNavigationItemSelectedListener {
+    var layoutManger: RecyclerView.LayoutManager? = null
+    var adapter: RecyclerView.Adapter<RecyclerAdapter.ViewHolder>? = null
+
+    var menuLayoutManager: RecyclerView.LayoutManager? = null
+    var navMenuAdapter: RecyclerView.Adapter<NavRecyclerAdapter.ViewHolder>? = null
+
     // api connection
-    val CONNECTION_TIMEOUT_MILLISECONDS = 60 * 1000
+    val CONNECTION_TIMEOUT_MILLISECONDS = 60 * 1_000
 
     val API_KEY = "76bfded27255952b203b27148d1b71fd"
     val HASH_CODE = "bea98a0dcae226b8392394770170756a"
 
     var searchNameStartsWith = ""
-    var MARVEL_ALL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${searchNameStartsWith}&limit=50&ts=1&apikey=${API_KEY}&hash=${HASH_CODE}"
-    var MARVEL_URL = "https://gateway.marvel.com/v1/public/characters?name=Spider-man&orderBy=name&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-    val locations = arrayOf("40.6974034,-73.8395988", "34.0201613,-118.1315522", "31.3867115,37.3255463", "51.089965,14.9387907", "52.7536099,2.1562505")
+    var MARVEL_ALL_CHARACTERS =
+        "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${searchNameStartsWith}&limit=50&ts=1&apikey=${API_KEY}&hash=${HASH_CODE}"
+    var MARVEL_URL =
+        "https://gateway.marvel.com/v1/public/characters?name=Spider-man&orderBy=name&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+
     var titles = ArrayList<String>()
     var details = ArrayList<String>()
     var modifiedDate = ArrayList<String>()
@@ -56,11 +59,38 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
     //array of Character obj
     var charactersList = ArrayList<Character>()
 
-    var MARVEL_CHARACTERS:String = ""
+    var MARVEL_CHARACTERS: String = ""
 
-    internal var textLength = 0
+    var textLength = 0
 
-    val lettersAtoZ = arrayOf("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z")
+    val lettersAtoZ = arrayOf(
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z"
+    )
 
     // nav drawer layout objects
 //    lateinit var toolbar: Toolbar
@@ -70,12 +100,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         //drawer
 //        toolbar = findViewById(R.id.toolbar)
         drawer = findViewById(R.id.activity_main_drawer)
         navView = findViewById(R.id.navView)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         val toggle = ActionBarDrawerToggle(
             this, drawer, toolbar, 0, 0
         )
@@ -83,17 +114,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
         toggle.syncState()
         navView.setNavigationItemSelectedListener(this)
         navView.setOnClickListener(this)
+
         setPointer()
         //tool bar section
-
+//        navView.menu.findItem(R.id.drawer_title).title = userName
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_register -> {
-                val intent = Intent(this, RegisterActivity::class.java)
-                startActivity(intent)
-            }
+            R.id.nav_favourites -> { startActivity(Intent(this, FavouritesActivity::class.java)) }
+            R.id.nav_register -> { startActivity(Intent(this, RegisterActivity::class.java)) }
             R.id.nav_login -> { startActivity(Intent(this, LoginActivity::class.java)) }
             R.id.nav_signout -> { Toast.makeText(this, item.title, Toast.LENGTH_LONG).show() }
         }
@@ -101,27 +131,50 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
         return true
     }
 
-    private fun setPointer() {
-        numPicker.minValue = 0
-        numPicker.maxValue = lettersAtoZ.size-1
-        numPicker.displayedValues = lettersAtoZ
+    private fun setNumberPicker(): Int {
+        //sets numPicker for amount of data to fetch
+
+        var selectedValue = numPicker.value
+//        numPicker.displayedValues = lettersAtoZ
 //            numPicker.setFormatter( )
 
         numPicker.setOnValueChangedListener { numberPicker, oldVal, newVal ->
-//            Toast.makeText(applicationContext, lettersAtoZ[newVal], Toast.LENGTH_SHORT).show()
+            //            Toast.makeText(applicationContext, lettersAtoZ[newVal], Toast.LENGTH_SHORT).show()
+//            MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${lettersAtoZ[newVal]}&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            var myData = GetDataAsyncTask()
+//            myData.execute(MARVEL_CHARACTERS)
+//            charactersList.clear()
 
-            MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${lettersAtoZ[newVal]}&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            charactersList.clear()
-            var myData = GetDataAsyncTask()
-            myData.execute(MARVEL_CHARACTERS)
+            selectedValue = newVal
         }
 
+        return selectedValue
+    }
+
+    private fun setPointer() {
+//        setNumberPicker()
+
+        numPicker.minValue = 1
+        numPicker.maxValue = 100
+        numPicker.value = 10
+//        numPicker.minValue = 0
+//        numPicker.maxValue = lettersAtoZ.size-1
+//        numPicker.displayedValues = lettersAtoZ
+////            numPicker.setFormatter( )
+//
+//        numPicker.setOnValueChangedListener { numberPicker, oldVal, newVal ->
+////            Toast.makeText(applicationContext, lettersAtoZ[newVal], Toast.LENGTH_SHORT).show()
+//            MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${lettersAtoZ[newVal]}&limit=${setNumberPicker()}&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            var myData = GetDataAsyncTask()
+//            myData.execute(MARVEL_CHARACTERS)
+//            charactersList.clear()
+//        }
 
 
         fabMain.setOnClickListener {
             showAlertMenu()
         }
-
+    //region
 //        for (index in 0 until locations.size){
 //            var WURL = "https://api.darksky.net/forecast/bf818f22c95ed844f2ca1827f1380154/"
 //            WURL+=locations[index]
@@ -138,12 +191,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 //        this.btnF.setOnClickListener(this)
 //        this.btnG.setOnClickListener(this)
 
-        for (id in R.id.btnA .. R.id.btnG){
-//            var id = R.id.btnA
-            characterUrlRequest.add(id)
-            Log.e(" ID BTN ", ""+id)
-            findViewById<Button>(characterUrlRequest.last()).setOnClickListener(this)
-        }
+//        for (id in R.id.btnA .. R.id.btnG){
+////            var id = R.id.btnA
+//            characterUrlRequest.add(id)
+//            Log.e(" ID BTN ", ""+id)
+//            findViewById<Button>(characterUrlRequest.last()).setOnClickListener(this)
+//        }
+
 
 /*  toolbar buttons handler
         btnA.setOnClickListener {
@@ -202,44 +256,68 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
             myData.execute(MARVEL_CHARACTERS)
         }   */
 //        setSupportActionBar(toolbar)
+        //endregion
 
-        collapsing_toolbar.title="TITLE"
+        collapsing_toolbar.title = "TITLE"
         collapsing_toolbar.setContentScrimColor(Color.TRANSPARENT)
+
         //using our recycler view
         layoutManger = LinearLayoutManager(this)
         recycler_view.layoutManager = layoutManger
-    }
 
+        menuLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        letters_nav_list.layoutManager = menuLayoutManager
+
+        letters_nav_list?.smoothScrollBy(1500, 0)
+//        letters_nav_list.adapter = NavRecyclerAdapter(lettersAtoZ)
+
+        // handle recycler item onClick
+        letters_nav_list?.adapter =
+            NavRecyclerAdapter(lettersAtoZ) {
+                charactersList.clear()
+                MARVEL_CHARACTERS =
+                    "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${lettersAtoZ[it]}&limit=${setNumberPicker()}&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+                val myData = GetDataAsyncTask()
+                myData.execute(MARVEL_CHARACTERS)
+                searchBar.requestFocus()
+            }
+//        navView.menu.findItem(R.id.drawer_title).title = userName
+        }
 
     override fun onClick(view: View) {
-        when (view.id){
-            R.id.btnA->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=a&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnB->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=b&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnC->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=c&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnD->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=d&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnE->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=e&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnF->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=f&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            R.id.btnG->{
-                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=g&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-            }
-            else->{Toast.makeText(this,"press a letter to get characters", Toast.LENGTH_SHORT).show()}
-        }
+//        when (view.id){
+//            R.id.btnA->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=a&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnB->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=b&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnC->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=c&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnD->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=d&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnE->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=e&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnF->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=f&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            R.id.btnG->{
+//                MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=g&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+//            }
+//            else->{Toast.makeText(this,"press a letter to get characters", Toast.LENGTH_SHORT).show()}
+//        }
+        //pass the selection from menuAdapter to api request
+        MARVEL_CHARACTERS =
+            "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${"m"}&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
+        //
         charactersList.clear()
         searchBar.requestFocus() // move to search barafter click
-        var myData = GetDataAsyncTask()
+        val myData = GetDataAsyncTask()
         myData.execute(MARVEL_CHARACTERS)
+
     }
 
 
@@ -248,8 +326,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 
         val list = ArrayList<Character>()
 
-        for (i in 0..charactersList!!.size-1) {
-            var character = Character(charactersList!![i].getName(),charactersList!![i].getDescription(),charactersList!![i].getThumbnail(),charactersList!![i].getDateModified(), charactersList!![i].getDetailsURL(), charactersList!![i].getWikiURL())
+        for (i in 0 until charactersList.size) {
+            val character = Character(
+                charactersList[i].getName(),
+                charactersList[i].getDescription(),
+                charactersList[i].getThumbnail(),
+                charactersList[i].getDateModified(),
+                charactersList[i].getDetailsURL(),
+                charactersList[i].getWikiURL()
+            )
             list.add(character)
         }
 
@@ -259,10 +344,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
     companion object {
         lateinit var charNamesArrayList: ArrayList<Character>
         lateinit var array_sort: ArrayList<Character>
+//        var selection: String = "p"
     }
 
     // async data retrieval with url connection
-    inner class GetDataAsyncTask:AsyncTask<String,String,String>() {
+    inner class GetDataAsyncTask : AsyncTask<String, String, String>() {
+        val CONNECTION_TIMEOUT_MILLISECONDS = 60 * 1000
         // background connection for seamless feel to get input stream of string
         override fun doInBackground(vararg args: String?): String {
             lateinit var urlConnection: HttpsURLConnection
@@ -284,13 +371,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
             }
             return inString
         }
+
         // after doInBackground task finished, build the data and pass to adapter
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
 //            getResultFromAPI(result)
             getAllResultsFromAPI(result)
 //            recycler_view.adapter = RecyclerAdapter(titles,details,modifiedDate,images)
-            recycler_view.adapter = RecyclerAdapter(charactersList) //this sets the list to adapter in order to display it
+            recycler_view.adapter =
+                RecyclerAdapter(charactersList) //this sets the list to adapter in order to display it
             adapter?.notifyDataSetChanged()
 
             charNamesArrayList = populateList()
@@ -304,10 +393,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 //                    charactersList.clear()
 //                    var myData = GetDataAsyncTask()
 //                    myData.execute(MARVEL_CHARACTERS)
-                    }
+                }
 
-                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-
+                override fun beforeTextChanged(
+                    s: CharSequence,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
                 }
 
                 override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
@@ -328,7 +421,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 
                     filterFromResult()
 
-                    recycler_view.adapter = RecyclerAdapter(array_sort)
+                    recycler_view.adapter =
+                        RecyclerAdapter(array_sort)
 //                    recycler_view!!.adapter = adapter
                     adapter?.notifyDataSetChanged()
 //                    recycler_view!!.layoutManager =
@@ -337,8 +431,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
                 }
             })
         }
+
         //filter the json result to specific text search
-        private fun filterFromResult(){
+        private fun filterFromResult() {
             textLength = searchBar!!.text.length
             array_sort.clear()
             for (i in charNamesArrayList.indices) {
@@ -357,7 +452,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 
             val data = json.getJSONObject("data")
             var results = data.getJSONArray("results")
-            var  resultsInner = results.getJSONObject(0)
+            var resultsInner = results.getJSONObject(0)
             var name = resultsInner.getString("name")
             var description = resultsInner.getString("description").toString()
             var modified = resultsInner.getString("modified").toString()
@@ -377,13 +472,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
         }
 
         // after connection to our api's url we use the inputStream we have (String type) to create JSON object result
-        private fun getAllResultsFromAPI(result: String?){
+        private fun getAllResultsFromAPI(result: String?) {
             var json = JSONObject(result)
 
             val data = json.getJSONObject("data")
             val results = data.getJSONArray("results")
 
-            for (item in 0 until results.length()){
+            for (item in 0 until results.length()) {
 
                 var innerRes = results.getJSONObject(item)
                 var name = innerRes.getString("name")
@@ -391,20 +486,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
                 var modified = innerRes.getString("modified").toString()
                 var thumbnail = innerRes.getJSONObject("thumbnail").getString("path")
 
-                var urlsDetail = innerRes.getJSONArray("urls").getJSONObject(0).getString("type").toString()
-                if (urlsDetail == "detail" ){
-                    urlsDetail = innerRes.getJSONArray("urls").getJSONObject(0).getString("url").toString()
+                var urlsDetail =
+                    innerRes.getJSONArray("urls").getJSONObject(0).getString("type").toString()
+                if (urlsDetail == "detail") {
+                    urlsDetail =
+                        innerRes.getJSONArray("urls").getJSONObject(0).getString("url").toString()
                     Log.e("inJSON_URL", urlsDetail)
                 }
-                var urlsWiki = innerRes.getJSONArray("urls").getJSONObject(1).getString("type").toString()
-                if (urlsWiki == "wiki" ){
-                    urlsWiki = innerRes.getJSONArray("urls").getJSONObject(1).getString("url").toString()
+                var urlsWiki =
+                    innerRes.getJSONArray("urls").getJSONObject(1).getString("type").toString()
+                if (urlsWiki == "wiki") {
+                    urlsWiki =
+                        innerRes.getJSONArray("urls").getJSONObject(1).getString("url").toString()
                     Log.e("inJSON_URLWIKI", urlsWiki)
                 }
 //                var urlsDetail = innerRes.getJSONArray("urls").getJSONObject(0).getString("url")
 //                var urlsWiki = innerRes.getJSONArray("urls").getJSONObject(1).getString("url")
                 //
-                val charachter = Character(name, description, thumbnail, modified, urlsDetail, urlsWiki)
+                val charachter =
+                    Character(name, description, thumbnail, modified, urlsDetail, urlsWiki)
+//                charachter.setName(name)
+//                charachter.setDescription(description)
+//                charachter.setThumbnail(thumbnail)
+//                charachter.setDateModified(modified)
+//                charachter.setDetailsURL(urlsDetail)
+//                charachter.setWikiURL(urlsWiki)
+
 /* arrayLists for each category of a character
                 titles.add(name)
                 details.add(description)
@@ -429,7 +536,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
                     if (line != null) {
                         result.append(line)
                     }
-                } while (line != null)
+                } while (!line.isNullOrEmpty())
             } catch (e: Exception) {
                 Log.e("error", e.message)
             } finally {
@@ -439,10 +546,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
         }
     }
 
-    private fun showAlertMenu(){
+    private fun showAlertMenu() {
         val builder = AlertDialog.Builder(this@MainActivity)
         builder.setTitle("")
-        val myView: View = LayoutInflater.from(this@MainActivity).inflate(R.layout.list_fab_main, null)
+        val myView: View =
+            LayoutInflater.from(this@MainActivity).inflate(R.layout.list_fab_main, null)
         var listView: ListView = myView.findViewById(R.id.lstFabMain)
 
         var mockList = ArrayList<String>()
@@ -454,7 +562,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
 //        lstFabMain.adapter = ListAdapter(this@MainActivity, mockList)
 
         builder.setView(myView)
-        builder.setNegativeButton("Cancel"){dialog, _ ->
+        builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
         }
 
@@ -464,23 +572,23 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationView.O
         //onItemClick to handle list item click
         listView.setOnItemClickListener { adapterView, view, i, l ->
             when (i) {
-                0->{ // register
-                    val intent = Intent(this,RegisterActivity::class.java)
-                    startActivity(intent)
-                }
-                1->{
-                    // login
-                }
-                2->{
-
-                }
+                0 -> { startActivity(Intent(this, RegisterActivity::class.java)) }
+                1 -> { startActivity(Intent(this, LoginActivity::class.java)) }
+                2 -> { /* logout */ }
+                3 -> { /* information */}
             }
         }
     }
 
-    private class ListAdapter(context: Context, data: List<String>): BaseAdapter(){
-        var context:Context
-        var data:List<String>
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val menuItem = menu?.findItem(R.id.drawer_title)
+        menuItem?.title = "Welcome!"
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    private class ListAdapter(context: Context, data: List<String>) : BaseAdapter() {
+        var context: Context
+        var data: List<String>
 
         init {
             this.context = context

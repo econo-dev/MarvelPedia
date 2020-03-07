@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">MarvelPedia</string>
+    <string name="character_title"></string>
+    <string name="login_description">Login to save your favourite characters.\nIf it is your first time here please </string>
+    <string name="register"><u>Register</u></string>
+    <string name="no_favourites_saved">No Favourites Characters Saved Yet</string>
+    <string name="please_login">Please login to view your saved characters</string>
 </resources>

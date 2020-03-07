@@ -20,11 +20,11 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         />
 
-    <android.support.design.widget.AppBarLayout
+        <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
@@ -61,10 +61,10 @@
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:popupTheme="@style/AppTheme.NoActionBar"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:layout_collapseMode="pin"
             android:background="?attr/colorPrimary"
@@ -72,75 +72,69 @@
             android:isScrollContainer="true"
             android:fitsSystemWindows="true">
 
-<!--            <TextView-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:hint="Search for Characters..."-->
-<!--                android:textColorHint="@color/colorPrimaryDark"-->
-<!--                android:id="@+id/search"-->
-<!--                />-->
-
             <NumberPicker
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:id="@+id/numPicker"/>
+                android:id="@+id/numPicker"
+                android:theme="@style/AppTheme.Picker"
+                />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="A"
-                android:id="@+id/btnA"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="B"
-                android:id="@+id/btnB"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="C"
-                android:id="@+id/btnC"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="D"
-                android:id="@+id/btnD"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="E"
-                android:id="@+id/btnE"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="F"
-                android:id="@+id/btnF"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="G"
-                android:id="@+id/btnG"
-                />
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="A"-->
+<!--                android:id="@+id/btnA"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="B"-->
+<!--                android:id="@+id/btnB"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="C"-->
+<!--                android:id="@+id/btnC"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="D"-->
+<!--                android:id="@+id/btnD"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="E"-->
+<!--                android:id="@+id/btnE"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="F"-->
+<!--                android:id="@+id/btnF"-->
+<!--                />-->
+<!--            <Button-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:backgroundTint="@color/colorPrimaryDark"-->
+<!--                android:text="G"-->
+<!--                android:id="@+id/btnG"-->
+<!--                />-->
 
             <EditText
                 android:layout_width="match_parent"
@@ -148,12 +142,21 @@
                 android:hint="Search for Characters..."
                 android:textColorHint="@color/colorPrimaryDark"
                 android:focusable="true"
-                android:focusedByDefault="true"
+                android:focusedByDefault="false"
                 android:id="@+id/searchBar"
                 />
 
         </android.support.v7.widget.Toolbar>
+
         </HorizontalScrollView>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/letters_nav_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                />
+
     </android.support.design.widget.AppBarLayout>
 
     <android.support.design.widget.FloatingActionButton
@@ -162,12 +165,11 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="5dp"
         android:id="@+id/fabMain"
-        android:src="@drawable/fab_setting"/>
+        android:src="@drawable/marvellogo"/>
 
     <include layout="@layout/content_card_demo"/>
 
 </android.support.design.widget.CoordinatorLayout>
-
 
     <android.support.design.widget.NavigationView
         android:layout_width="wrap_content"
