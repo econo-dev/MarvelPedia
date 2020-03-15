@@ -7,7 +7,6 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import java.lang.Exception
 import kotlin.collections.ArrayList
 
 /**
@@ -203,17 +202,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     }
 
-    fun removeUserCharacter(userId: Int, character: Character){
+    fun removeUserCharacter(userId: Int, characterName: String){
         val db = this.writableDatabase
-        val name = character.getName()
         val whereQuery = "${KEY_ID} = ? AND ${KEY_NAME} = ?"
         //deleting from table
-        try {
-            db.execSQL(" DELETE FROM "+ TABLE_USER_CHARACTERS + " WHERE " + KEY_ID + "=\"" + userId.toString() + "\" AND " + KEY_NAME + "=\"" + name +"\";")
-        } catch (e: SQLException){
-            Log.e("SQL ERR ", e.message)
-        }
-//        db.delete(TABLE_USER_CHARACTERS, whereQuery, arrayOf(userId.toString(), name))>0
+//        try {
+//            db.execSQL(" DELETE FROM "+ TABLE_USER_CHARACTERS + " WHERE " + KEY_ID + "=\"" + userId.toString() + "\" AND " + KEY_NAME + "=\"" + character +"\";")
+//        } catch (e: SQLException){
+//            Log.e("SQL ERR ", e.message)
+//        }
+        db.delete(TABLE_USER_CHARACTERS, "$KEY_ID = ? AND $KEY_NAME = ?", arrayOf(userId.toString(), characterName))
     }
 
     companion object {

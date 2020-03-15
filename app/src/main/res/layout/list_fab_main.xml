@@ -1,12 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center"
-    android:layout_gravity="center">
+    android:background="@android:color/transparent"
+    android:orientation="vertical"
+    android:padding="25dp">
 
     <ListView
+        android:id="@+id/lstFabMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/lstFabMain"/>
+        android:layout_gravity="clip_horizontal"
+        android:background="@drawable/round_bg"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:padding="8dp" />
+
+    <LinearLayout
+        android:id="@+id/attribute_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:padding="8dp"
+        android:background="@drawable/round_bg"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/information_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="clip_horizontal"
+            android:autoLink="web"
+            android:focusable="true"
+            android:linksClickable="true"
+            android:padding="8dp"
+            android:gravity="center"
+            android:text="@string/marvel_url"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/attrib_txt_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="clip_horizontal"
+            android:padding="8dp"
+            android:gravity="center"
+            android:text="@string/marvel_attribution"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/attrib_txt_2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/flaticon_attribution"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            />
+        <TextView
+            android:id="@+id/attrib_txt_3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:autoLink="web"
+            android:focusable="true"
+            android:linksClickable="true"
+            android:text="@string/those_icon_attribution"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            />
+
+    </LinearLayout>
 </LinearLayout>

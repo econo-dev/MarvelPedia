@@ -17,19 +17,19 @@ class CharacterDetailWebView : AppCompatActivity() {
     }
 
     private fun setPointer() {
-        var webView = findViewById<WebView>(R.id.webView)
-//        val url = intent.getStringExtra("url")
-//        webView.loadUrl(url)
-        var url = intent.getStringExtra("url")
-        val titleName = intent.getStringExtra("titleName")
-        Log.e(" WebView", url)
-        txtCharDetail.text = titleName
-
+        val webView = findViewById<WebView>(R.id.webView)
         //WebView
         webView.webViewClient = WebViewClient()
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.overScrollMode = WebView.OVER_SCROLL_NEVER
+//        val url = intent.getStringExtra("url")
+//        webView.loadUrl(url)
+        val url = intent.getStringExtra("url")
+        val titleName = intent.getStringExtra("titleName")
+        Log.e(" WebView", url)
+        txtCharDetail.text = titleName.toUpperCase()
+
 
         webView.loadUrl(url)
     }

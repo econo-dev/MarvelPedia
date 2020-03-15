@@ -1,8 +1,33 @@
 <resources>
     <string name="app_name">MarvelPedia</string>
+    <string name="welcome">Welcome,&#160;</string>
+    <string name="guest">Guest</string>
     <string name="character_title"></string>
     <string name="login_description">Login to save your favourite characters.\nIf it is your first time here please </string>
+    <string name="check_credentials">Check user name or password</string>
+    <string name="user_not_exist">User does not exist</string>
+    <string name="credentials_empty">User name or password are empty</string>
+    <string name="login_success">Logged-in Successfully</string>
+    <string name="no_user_logged">No User is Logged in</string>
+    <string name="sign_out">Sign out</string>
     <string name="register"><u>Register</u></string>
     <string name="no_favourites_saved">No Favourites Characters Saved Yet</string>
     <string name="please_login">Please login to view your saved characters</string>
+    <string name="all_rights_reserved">All Rights Reserved\n</string>
+    <string name="marvel">Marvel 2014</string>
+    <string name="marvel_attribution">Data provided by Marvel. © 2014 Marvel\nAll Rights Reserved</string>
+    <string name="data_provided">Data provided by Marvel. © 2014 Marvel</string>
+    <string name="marvel_url"><a href="https://www.marvel.com">www.marvel.com</a></string>
+    <string name="flaticon_attribution">Icons made by <a href="https://www.flaticon.com/authors/those-icons"> Those Icons </a>from</string>
+    <string name="those_icon_attribution"><a href="https://www.flaticon.com/">www.flaticon.com</a></string>
+    <string name="marvel_data_credit">Data provided by Marvel. © 2014 Marvel</string>
+    <string name="no_extra_info">No Extra Info for this character</string>
+    <string name="login_to_save">Please login to save a character to favourites</string>
+    <string name="added_to_favourites"> was added to favourites!</string>
+    <string name="already_added"> was already added</string>
+    <string name="nothing_to_share">Nothing to Share</string>
+    <string name="share_text">Check it out!\n</string>
+
+    <string name="drawer_open">1</string>
+    <string name="drawer_close">0</string>
 </resources>

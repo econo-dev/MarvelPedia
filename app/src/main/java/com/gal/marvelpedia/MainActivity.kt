@@ -1,8 +1,12 @@
 package com.gal.marvelpedia
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.NavigationView
@@ -15,12 +19,20 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.*
+import android.view.animation.AnimationUtils
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import com.gal.marvelpedia.LoginActivity.Companion.LOGGED_USER_ID_KEY
+import com.gal.marvelpedia.LoginActivity.Companion.LOGGED_USER_NAME_KEY
+import com.gal.marvelpedia.LoginActivity.Companion.isLogged
+import com.gal.marvelpedia.LoginActivity.Companion.userId
 import com.gal.marvelpedia.LoginActivity.Companion.userName
 import com.gal.marvelpedia.adapters.NavRecyclerAdapter
 import com.gal.marvelpedia.adapters.RecyclerAdapter
+import com.gal.marvelpedia.utilities.SpinnerLoader
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -30,7 +42,7 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 class MainActivity : AppCompatActivity(), View.OnClickListener,
-    NavigationView.OnNavigationItemSelectedListener {
+    NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     var layoutManger: RecyclerView.LayoutManager? = null
     var adapter: RecyclerView.Adapter<RecyclerAdapter.ViewHolder>? = null
 
@@ -42,6 +54,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
     val API_KEY = "76bfded27255952b203b27148d1b71fd"
     val HASH_CODE = "bea98a0dcae226b8392394770170756a"
+    val SP_DEFAULT_USER = "Guest"
 
     var searchNameStartsWith = ""
     var MARVEL_ALL_CHARACTERS =
@@ -92,6 +105,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         "Z"
     )
 
+    lateinit var sp: SharedPreferences
     // nav drawer layout objects
 //    lateinit var toolbar: Toolbar
     lateinit var drawer: DrawerLayout
@@ -100,6 +114,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
         //drawer
 //        toolbar = findViewById(R.id.toolbar)
         drawer = findViewById(R.id.activity_main_drawer)
@@ -107,11 +123,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        val toggle = ActionBarDrawerToggle(
-            this, drawer, toolbar, 0, 0
-        )
+        var toggle = object :ActionBarDrawerToggle(
+            this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close
+        ){
+            override fun onDrawerOpened(drawerView: View) {
+                super.onDrawerOpened(drawerView)
+                animateDrawerImage()
+            }
+            override fun onDrawerStateChanged(newState: Int) {
+                super.onDrawerStateChanged(newState)
+                hideKeyboard()
+            }
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                super.onDrawerSlide(drawerView, slideOffset)
+//                navView.menu?.findItem(R.id.drawer_title)?.title = userName
+            }
+        }
+
         drawer.addDrawerListener(toggle)
         toggle.syncState()
+
+
+
+//        var anima: Animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
+//        anima.duration = 1000
+//        drawer.startAnimation(anima)
+
         navView.setNavigationItemSelectedListener(this)
         navView.setOnClickListener(this)
 
@@ -120,12 +157,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 //        navView.menu.findItem(R.id.drawer_title).title = userName
     }
 
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_favourites -> { startActivity(Intent(this, FavouritesActivity::class.java)) }
             R.id.nav_register -> { startActivity(Intent(this, RegisterActivity::class.java)) }
             R.id.nav_login -> { startActivity(Intent(this, LoginActivity::class.java)) }
-            R.id.nav_signout -> { Toast.makeText(this, item.title, Toast.LENGTH_LONG).show() }
+            R.id.nav_signout -> {
+                logOutUser()
+                Toast.makeText(this, item.title, Toast.LENGTH_LONG).show()
+            }
         }
         drawer.closeDrawer(GravityCompat.START)
         return true
@@ -139,12 +180,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 //            numPicker.setFormatter( )
 
         numPicker.setOnValueChangedListener { numberPicker, oldVal, newVal ->
-            //            Toast.makeText(applicationContext, lettersAtoZ[newVal], Toast.LENGTH_SHORT).show()
-//            MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${lettersAtoZ[newVal]}&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
-//            var myData = GetDataAsyncTask()
-//            myData.execute(MARVEL_CHARACTERS)
-//            charactersList.clear()
-
             selectedValue = newVal
         }
 
@@ -152,8 +187,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     }
 
     private fun setPointer() {
+        var loggedUser = getLoggedUser()
+        if (loggedUser != SP_DEFAULT_USER){
+            getLoggedUserId()
+            isLogged = true
+            navView.menu.findItem(R.id.drawer_title).title = getString(R.string.welcome)+loggedUser
+        } else {
+            navView.menu.findItem(R.id.drawer_title).title = getString(R.string.welcome)+getString(R.string.guest)
+        }
 //        setNumberPicker()
-
+        Toast.makeText(this, getString(R.string.marvel_data_credit), Toast.LENGTH_LONG).show()
         numPicker.minValue = 1
         numPicker.maxValue = 100
         numPicker.value = 10
@@ -170,9 +213,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 //            charactersList.clear()
 //        }
 
-
         fabMain.setOnClickListener {
             showAlertMenu()
+//
+//            var profileImage: ImageView? = findViewById(R.id.account_img)
+//            var anim = AnimationUtils.loadAnimation(this, R.anim.rotate)
         }
     //region
 //        for (index in 0 until locations.size){
@@ -280,6 +325,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                 val myData = GetDataAsyncTask()
                 myData.execute(MARVEL_CHARACTERS)
                 searchBar.requestFocus()
+                SpinnerLoader(drawer,this).startSpinner()
             }
 //        navView.menu.findItem(R.id.drawer_title).title = userName
         }
@@ -344,7 +390,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     companion object {
         lateinit var charNamesArrayList: ArrayList<Character>
         lateinit var array_sort: ArrayList<Character>
-//        var selection: String = "p"
     }
 
     // async data retrieval with url connection
@@ -376,6 +421,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
 //            getResultFromAPI(result)
+            SpinnerLoader(drawer,this@MainActivity).stopSpinner()
             getAllResultsFromAPI(result)
 //            recycler_view.adapter = RecyclerAdapter(titles,details,modifiedDate,images)
             recycler_view.adapter =
@@ -413,7 +459,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 //                    var myData = GetDataAsyncTask()
 //                    myData.execute(MARVEL_ALL_CHARACTERS)
 
-                    // TODO this is beta for search request - only work after button request
+                    // #####  this is beta for search request - only work after button request  ####
 //                    MARVEL_CHARACTERS = "https://gateway.marvel.com/v1/public/characters?nameStartsWith=${s}&limit=50&ts=1&apikey=76bfded27255952b203b27148d1b71fd&hash=bea98a0dcae226b8392394770170756a"
 //                    charactersList.clear()
 //                    var myData = GetDataAsyncTask()
@@ -492,14 +538,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                     urlsDetail =
                         innerRes.getJSONArray("urls").getJSONObject(0).getString("url").toString()
                     Log.e("inJSON_URL", urlsDetail)
-                }
+                } else{urlsDetail = ""}
                 var urlsWiki =
                     innerRes.getJSONArray("urls").getJSONObject(1).getString("type").toString()
                 if (urlsWiki == "wiki") {
                     urlsWiki =
                         innerRes.getJSONArray("urls").getJSONObject(1).getString("url").toString()
                     Log.e("inJSON_URLWIKI", urlsWiki)
-                }
+                } else {urlsWiki = ""}
 //                var urlsDetail = innerRes.getJSONArray("urls").getJSONObject(0).getString("url")
 //                var urlsWiki = innerRes.getJSONArray("urls").getJSONObject(1).getString("url")
                 //
@@ -548,17 +594,24 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
     private fun showAlertMenu() {
         val builder = AlertDialog.Builder(this@MainActivity)
-        builder.setTitle("")
-        val myView: View =
+
+        var myView: View =
             LayoutInflater.from(this@MainActivity).inflate(R.layout.list_fab_main, null)
         var listView: ListView = myView.findViewById(R.id.lstFabMain)
+        var infoTxt: TextView = myView.findViewById(R.id.information_txt)
+        var attribText1: TextView = myView.findViewById(R.id.attrib_txt_1)
+        var attribText2: TextView = myView.findViewById(R.id.attrib_txt_2)
+        var attribText3: TextView = myView.findViewById(R.id.attrib_txt_3)
+        var attributeLayout: LinearLayout = myView.findViewById(R.id.attribute_layout)
 
-        var mockList = ArrayList<String>()
-        mockList.add("Register")
-        mockList.add("Login")
-        mockList.add("Logout")
-        mockList.add("Information")
-        listView.adapter = ListAdapter(this@MainActivity, mockList)
+        var fabMenuItems = ArrayList<String>()
+        fabMenuItems.add("Register")
+        fabMenuItems.add("Login")
+        fabMenuItems.add("Logout")
+        fabMenuItems.add("Information")
+        fabMenuItems.add("Share")
+
+        listView.adapter = ListAdapter(this@MainActivity, fabMenuItems)
 //        lstFabMain.adapter = ListAdapter(this@MainActivity, mockList)
 
         builder.setView(myView)
@@ -567,22 +620,68 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         }
 
         val dialog: AlertDialog = builder.create()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+
         dialog.show()
+            /* set margins for alert dialog */
+//        val btn = dialog.getButton(DialogInterface.BUTTON_NEGATIVE)
+//        val btnParams: ViewGroup.MarginLayoutParams = btn.layoutParams as ViewGroup.MarginLayoutParams
+//        val viewParams: ViewGroup.MarginLayoutParams = myView.layoutParams as ViewGroup.MarginLayoutParams
+//        viewParams.setMargins(150,800,0,0)
+//        btnParams.marginEnd = 0
 
         //onItemClick to handle list item click
         listView.setOnItemClickListener { adapterView, view, i, l ->
             when (i) {
-                0 -> { startActivity(Intent(this, RegisterActivity::class.java)) }
-                1 -> { startActivity(Intent(this, LoginActivity::class.java)) }
-                2 -> { /* logout */ }
-                3 -> { /* information */}
+                0 -> {
+                    dialog.dismiss()
+                    startActivity(Intent(this, RegisterActivity::class.java))
+                }
+                1 -> {
+                    dialog.dismiss()
+                    startActivity(Intent(this, LoginActivity::class.java))
+                }
+                2 -> {
+                    if (isLogged) {
+                        Toast.makeText(this, userName + getString(R.string.sign_out), Toast.LENGTH_SHORT).show()
+                        logOutUser()
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(this, getString(R.string.no_user_logged), Toast.LENGTH_SHORT).show()
+                    }
+                }
+                3 -> {
+                    listView.visibility = View.GONE
+                    attributeLayout.visibility = View.VISIBLE
+                    attribText2.movementMethod = LinkMovementMethod.getInstance()
+                }
+                4 -> {
+//                    val sendIntent: Intent = Intent().apply {
+//                        action = Intent.ACTION_SEND
+//                        putExtra(Intent.EXTRA_TEXT, "This is my text to send.")
+//                        type = "text/plain"
+//                    }
+//
+//                    val shareIntent = Intent.createChooser(sendIntent, null)
+//                    startActivity(shareIntent)
+
+                    val whatsappIntent = Intent(Intent.ACTION_SEND)
+                    whatsappIntent.type = "text/plain"
+                    whatsappIntent.setPackage("com.whatsapp")
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "TEXT TO SHARE")
+                    try {
+                        startActivity(whatsappIntent)
+                    } catch (ex: ActivityNotFoundException) {
+                        Toast.makeText(this, "Whatsapp have not been installed", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         val menuItem = menu?.findItem(R.id.drawer_title)
-        menuItem?.title = "Welcome!"
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -603,6 +702,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             val rowText: TextView = myView.findViewById(R.id.newRow)
             rowText.text = data[index]
 
+            icon.setImageResource(
+                when (index) {
+                    0 -> R.drawable.ic_register
+                    1 -> R.drawable.ic_login
+                    2 -> R.drawable.ic_signout
+                    3 -> R.drawable.ic_information
+                    else -> R.drawable.marvellogo
+                }
+            )
 //            singleRow.textSize = 28F
 //            singleRow.setTextColor(Color.BLACK)
 //            singleRow.text = data[index]
@@ -624,4 +732,59 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         }
 
     }
+
+    fun getLoggedUser(): String{
+        sp = getSharedPreferences("logged_user", Context.MODE_PRIVATE)
+        val user = sp.getString(LOGGED_USER_NAME_KEY, SP_DEFAULT_USER)
+        userName = user!!
+        return user
+    }
+
+    fun getLoggedUserId(): Int{
+        sp = getSharedPreferences("logged_user", Context.MODE_PRIVATE)
+        val id = sp.getInt(LOGGED_USER_ID_KEY, -1)
+        userId = id
+
+        return id
+    }
+
+    fun logOutUser(){
+        sp.edit()
+            .remove(LOGGED_USER_NAME_KEY)
+            .remove(LOGGED_USER_ID_KEY)
+            .apply()
+        isLogged = false
+        userName = getLoggedUser()
+        navView.menu?.findItem(R.id.drawer_title)?.title = userName
+    }
+
+    fun hideKeyboard(){
+        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(this@MainActivity.currentFocus.windowToken,0)
+    }
+
+    fun animateDrawerImage(){
+        var profileImage: ImageView? = findViewById(R.id.account_img)
+        var anim = AnimationUtils.loadAnimation(this@MainActivity, R.anim.rotate)
+
+        profileImage?.startAnimation(anim)
+    }
+
+    override fun onDrawerStateChanged(newState: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+
+    }
+
+    override fun onDrawerClosed(drawerView: View) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onDrawerOpened(drawerView: View) {
+        TODO("Not yet implemented")
+    }
+
+
 }

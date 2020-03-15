@@ -11,8 +11,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.gal.marvelpedia.*
+import com.gal.marvelpedia.FavouritesActivity.FavList.favouriteCharactersList
 import com.gal.marvelpedia.LoginActivity.Companion.userId
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_favourites.*
+import kotlinx.android.synthetic.main.activity_favourites.view.*
+
 
 class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
     RecyclerView.Adapter<FavouritesRecyclerAdapter.ViewHolder>() {
@@ -22,7 +26,8 @@ class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
 //    var details: ArrayList<String> = detail
 //    var summaries: ArrayList<String> = summary
 //    var thumbnails: ArrayList<String> = images
-    val databaseHelper: DatabaseHelper? = null
+
+    var databaseHelper: DatabaseHelper? = null
     var charactersList: ArrayList<Character> = characters
     val THUMBNAIL_SIZE = "/landscape_medium.jpg"
 
@@ -39,6 +44,8 @@ class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
             itemImage = itemView.findViewById(R.id.item_image) as ImageView
             itemTitle = itemView.findViewById(R.id.item_title) as TextView
             itemDetail = itemView.findViewById(R.id.item_detail) as TextView
+
+            databaseHelper = DatabaseHelper(context)
 //            detailedImage = itemView.findViewById(R.id.imgPreview)
 //            searchBar = itemView.findViewById(R.id.searchBar)
 
@@ -69,8 +76,9 @@ class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
 
             itemView.setOnLongClickListener { view: View ->
                 val position: Int = adapterPosition
-                Log.e("FAV ", "$userId ${charactersList[position].getName()}")
-                databaseHelper?.removeUserCharacter(userId!!, charactersList[position])
+                val name = charactersList[position].getName()
+                Log.e("FAV ", "$userId $name $position")
+                databaseHelper!!.removeUserCharacter(userId!!, name)
                 FavouritesActivity.favouriteCharactersList.remove(charactersList[position])
                 Toast.makeText(
                     context,
@@ -78,6 +86,7 @@ class FavouritesRecyclerAdapter(characters: ArrayList<Character>) :
                     Toast.LENGTH_SHORT
                 ).show()
                 notifyDataSetChanged()
+
                 true
             }
         }

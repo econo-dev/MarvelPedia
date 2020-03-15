@@ -34,12 +34,11 @@ class FavouritesActivity : AppCompatActivity() {
         layoutManger = LinearLayoutManager(this)
         favourites_recycler_view.layoutManager = layoutManger
 
-        if (favouriteCharactersList.isNotEmpty()){
-            not_saved_text.visibility = View.GONE
-        }
 
         if (LoginActivity.isLogged){
             getListFromDB()
+            if (!favouriteCharactersList.isNullOrEmpty()){ not_saved_text.visibility = View.GONE }
+
             favourites_recycler_view.adapter = FavouritesRecyclerAdapter(favouriteCharactersList)
         } else {
             Toast.makeText(this, getString(R.string.please_login), Toast.LENGTH_LONG).show()

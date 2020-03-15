@@ -6,8 +6,9 @@
     android:id="@+id/activity_main_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_red_dark"
+    android:background="@color/colorPrimaryDark"
     android:clickable="true"
+    android:focusable="true"
     android:focusableInTouchMode="true">
 
 <android.support.design.widget.CoordinatorLayout android:layout_width="match_parent"
@@ -79,63 +80,6 @@
                 android:theme="@style/AppTheme.Picker"
                 />
 
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="A"-->
-<!--                android:id="@+id/btnA"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="B"-->
-<!--                android:id="@+id/btnB"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="C"-->
-<!--                android:id="@+id/btnC"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="D"-->
-<!--                android:id="@+id/btnD"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="E"-->
-<!--                android:id="@+id/btnE"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="F"-->
-<!--                android:id="@+id/btnF"-->
-<!--                />-->
-<!--            <Button-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:backgroundTint="@color/colorPrimaryDark"-->
-<!--                android:text="G"-->
-<!--                android:id="@+id/btnG"-->
-<!--                />-->
-
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -160,12 +104,28 @@
     </android.support.design.widget.AppBarLayout>
 
     <android.support.design.widget.FloatingActionButton
-        android:layout_width="wrap_content"
+        android:id="@+id/fabMain"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="5dp"
-        android:id="@+id/fabMain"
-        android:src="@drawable/marvellogo"/>
+        app:borderWidth="3dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/marvellogo"
+        android:backgroundTint="@color/colorPrimaryDark"
+        />
+
+    <ImageView
+        android:id="@+id/thor_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="4dp"
+        android:background="@drawable/circle_white_bg"
+        android:src="@drawable/thor_hammer"
+        android:visibility="gone"
+        android:layout_marginTop="250dp"
+        android:layout_gravity="center"
+        />
 
     <include layout="@layout/content_card_demo"/>
 
